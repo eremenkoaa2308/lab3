@@ -1,0 +1,8 @@
+﻿  lab3.cpp
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.41.34120\include\concepts(12): warning STL4038: The contents of <concepts> are available only with C++20 or later.
+C:\Users\dmite\source\repos\lab3\lab3.cpp(566,37): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\dmite\source\repos\lab3\lab3.cpp(709,37): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\dmite\source\repos\lab3\lab3.cpp(795,29): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+C:\Users\dmite\source\repos\lab3\lab3.cpp(761,9): warning C4101: number: неиспользованная локальная переменная
+C:\Users\dmite\source\repos\lab3\lab3.cpp(133,1): warning C4715: check_i: значение возвращается не при всех путях выполнения
+  lab3.vcxproj -> C:\Users\dmite\source\repos\lab3\x64\Debug\lab3.exe

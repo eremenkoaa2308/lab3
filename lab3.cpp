@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include "pipe.h"
 #include "cs.h"
+#include "gazset.h"
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -49,6 +50,7 @@ int getChoose() {
         cout << "7. Download\n";
         cout << "8. Filter\n";
         cout << "9. Delete\n";
+        cout << "10. Create gas trasportation system" << endl;
         cout << "0. Exit\n";
         getline(cin, input);
         logMessage(input);
@@ -829,14 +831,80 @@ void delPC(map<int, pipe>& Pipes, map<int, cs>& Css) {
     }
 
 }
+void createGazSet(map<int,gazset>Gaz,map<int, pipe>& Pipes, map<int, cs>& Css,int& i,int& ic, int& ig) {
+    cout << "Creating a gas transportation network" << endl;
+    if (Pipes.size() < 1 || Css.size() < 2) {
+        cout << "You can't create a gas transportation network." << endl;
+        if (Pipes.size() < 1) {
+            createPipe(Pipes, i);
+        }
+        else {
+            createCs(Css, ic);
+        }
+    }
+    showPipe(Pipes);
+    string sid;
+    int id;
+    cout << "Enter id of pipe you want to create gas transportation system" << endl;
 
+    while (true) {
+        getline(cin, sid);
+        if (stoi(sid)<=(i-1)) {
+            id = stoi(sid);
+            break;
+        }
+        else {
+            cout << "Enter positive number for id" << endl;
+        }
+    }
+    Gaz[i].setpipe(Pipes[id]);
+    showCs(Css);
+    string sc1id;
+    int c1id;
+    string sc2id;
+    int c2id;
+    cout << "Enter first cs id that would be a start of gts" << endl;
+
+    while (true) {
+        getline(cin, sc1id);
+        if (stoi(sc1id) <= (ic-1)) {
+            c1id = stoi(sc1id);
+            break;
+        }
+        else {
+            cout << "Enter positive number for id" << endl;
+        }
+    }
+    Gaz[i].setStartCs(Css[c1id]);
+    cout << "Enter second cs id that would be an end of gts" << endl;
+
+    while (true) {
+        getline(cin, sc2id);
+        if (stoi(sc2id) <= ic && stoi(sc2id) != c1id) {
+            c2id = stoi(sc2id);
+            break;
+        }
+        else {
+            cout << "Enter positive number for id" << endl;
+        }
+    }
+    Gaz[i].setEndCs(Css[c2id]);
+    cout << "Your gaz transportation system" << endl;
+    cout << Gaz[i].getPipe() << endl;
+    cout << Gaz[i].getStartCs() << endl;
+    cout << Gaz[i].getEndCs() << endl;
+
+
+}
 int main() {
     int i = 0;
     int ic = 0;
+    int ig = 0;
     logMessage("Program started");
     string line;
     map<int, pipe> Pipes;
     map<int, cs> Css;
+    map<int, gazset> Gaz;
     while (true) {
         int choose = getChoose();
         switch (choose) {
@@ -872,6 +940,10 @@ int main() {
         }
         case 9: {
             delPC(Pipes, Css);
+            break;
+        }
+        case 10: {
+            createGazSet(Gaz,Pipes, Css,i,ic,ig);
             break;
         }
         case 0:

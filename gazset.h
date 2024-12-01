@@ -1,18 +1,20 @@
 #pragma once
 #include "pipe.h"
 #include "cs.h"
+#include <map>
+using namespace std;
 class gazset
 {
 private:
-	pipe Pipe;
-	cs Cs1;
-	cs Cs2;
+	map<int,pipe> Pipe;
+	map<int, cs> Cs1;
+	map<int, cs> Cs2;
 public:
-	void setpipe(pipe p);
-	void setStartCs(cs c);
-	void setEndCs(cs c);
-	pipe getPipe();
-	cs getStartCs();
-	cs getEndCs();
+	void setpipe(pipe p,int id);
+	void setStartCs(cs c,int id);
+	void setEndCs(cs c,int id);
+	pipe getPipe(int id);
+	cs getStartCs(int id);
+	cs getEndCs(int id);
 };
 

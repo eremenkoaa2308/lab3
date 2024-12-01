@@ -11,6 +11,7 @@
 #include <thread>
 #include <map>
 #include <concepts>
+#include <set>
 using namespace std;
 
 
@@ -831,7 +832,8 @@ void delPC(map<int, pipe>& Pipes, map<int, cs>& Css) {
     }
 
 }
-void createGazSet(map<int,gazset>Gaz,map<int, pipe>& Pipes, map<int, cs>& Css,int& i,int& ic, int& ig) {
+void createGazSet(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& Css,
+    int& i, int& ic, int& ig, set<int>& usedPipes, set<int>& usedCs) {
     cout << "Creating a gas transportation network" << endl;
     if (Pipes.size() < 1 || Css.size() < 2) {
         cout << "You can't create a gas transportation network." << endl;
@@ -842,60 +844,93 @@ void createGazSet(map<int,gazset>Gaz,map<int, pipe>& Pipes, map<int, cs>& Css,in
             createCs(Css, ic);
         }
     }
+
+    // Проверка: если все трубы используются, создаем новую трубу
+    if (usedPipes.size() == Pipes.size()) {
+        cout << "All pipes are in use. Creating a new pipe..." << endl;
+        createPipe(Pipes, i);
+    }
+
     showPipe(Pipes);
     string sid;
     int id;
-    cout << "Enter id of pipe you want to create gas transportation system" << endl;
+    cout << "Enter id of pipe you want to use to create gas transportation system" << endl;
 
     while (true) {
         getline(cin, sid);
-        if (stoi(sid)<=(i-1)) {
-            id = stoi(sid);
+        id = stoi(sid);
+        if (id <= (i - 1) && usedPipes.find(id) == usedPipes.end()) {
             break;
         }
+        else if (usedPipes.find(id) != usedPipes.end()) {
+            cout << "This pipe is already in use. Choose another one." << endl;
+        }
         else {
-            cout << "Enter positive number for id" << endl;
+            cout << "Enter a valid id for the pipe." << endl;
         }
     }
-    Gaz[i].setpipe(Pipes[id]);
-    showCs(Css);
-    string sc1id;
-    int c1id;
-    string sc2id;
-    int c2id;
-    cout << "Enter first cs id that would be a start of gts" << endl;
 
+    usedPipes.insert(id); // Помечаем трубу как использованную
+    Gaz[ig].setpipe(Pipes[id], ig);
+
+    // Проверка: если все станции используются, создаем новую станцию
+    if (usedCs.size() == Css.size()) {
+        cout << "All compressor stations are in use. Creating a new compressor station..." << endl;
+        createCs(Css, ic);
+    }
+
+    showCs(Css);
+    string sc1id, sc2id;
+    int c1id, c2id;
+
+    cout << "Enter id of the first cs that will be the start of the gas transportation system" << endl;
     while (true) {
         getline(cin, sc1id);
-        if (stoi(sc1id) <= (ic-1)) {
-            c1id = stoi(sc1id);
+        c1id = stoi(sc1id);
+        if (c1id <= (ic - 1) && usedCs.find(c1id) == usedCs.end()) {
             break;
         }
+        else if (usedCs.find(c1id) != usedCs.end()) {
+            cout << "This cs is already in use. Choose another one." << endl;
+        }
         else {
-            cout << "Enter positive number for id" << endl;
+            cout << "Enter a valid id for the cs." << endl;
         }
     }
-    Gaz[i].setStartCs(Css[c1id]);
-    cout << "Enter second cs id that would be an end of gts" << endl;
 
+    usedCs.insert(c1id); // Помечаем первую станцию как использованную
+    Gaz[ig].setStartCs(Css[c1id], ig);
+    if (usedCs.size() == Css.size()) {
+        cout << "All compressor stations are in use. Creating a new compressor station..." << endl;
+        createCs(Css, ic);
+    }
+    showCs(Css);
+    cout << "Enter id of the second cs that will be the end of the gas transportation system" << endl;
     while (true) {
         getline(cin, sc2id);
-        if (stoi(sc2id) <= ic && stoi(sc2id) != c1id) {
-            c2id = stoi(sc2id);
+        c2id = stoi(sc2id);
+        if (c2id <= (ic - 1) && c2id != c1id && usedCs.find(c2id) == usedCs.end()) {
             break;
         }
+        else if (usedCs.find(c2id) != usedCs.end()) {
+            cout << "This cs is already in use. Choose another one." << endl;
+        }
         else {
-            cout << "Enter positive number for id" << endl;
+            cout << "Enter a valid id for the cs and ensure it is not the same as the first cs." << endl;
         }
     }
-    Gaz[i].setEndCs(Css[c2id]);
-    cout << "Your gaz transportation system" << endl;
-    cout << Gaz[i].getPipe() << endl;
-    cout << Gaz[i].getStartCs() << endl;
-    cout << Gaz[i].getEndCs() << endl;
 
+    usedCs.insert(c2id); // Помечаем вторую станцию как использованную
+    Gaz[ig].setEndCs(Css[c2id], ig);
 
+    cout << "Your gas transportation system has been created." << endl;
+    cout << Gaz[ig].getPipe(ig) << endl;
+    cout << Gaz[ig].getStartCs(ig) << endl;
+    cout << Gaz[ig].getEndCs(ig) << endl;
+
+    ig++; // Увеличиваем счетчик для следующего Gaz
 }
+
 int main() {
     int i = 0;
     int ic = 0;
@@ -905,6 +940,8 @@ int main() {
     map<int, pipe> Pipes;
     map<int, cs> Css;
     map<int, gazset> Gaz;
+    set<int> usedPipes; // Множество используемых труб
+    set<int> usedCs;
     while (true) {
         int choose = getChoose();
         switch (choose) {
@@ -943,7 +980,7 @@ int main() {
             break;
         }
         case 10: {
-            createGazSet(Gaz,Pipes, Css,i,ic,ig);
+            createGazSet(Gaz,Pipes, Css,i,ic,ig,usedPipes,usedCs);
             break;
         }
         case 0:

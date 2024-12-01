@@ -1,31 +1,31 @@
 #include "gazset.h"
 
-void gazset::setpipe(pipe p)
+void gazset::setpipe(pipe p,int id)
 {
-	Pipe = p;
+	Pipe[id] = p;
 }
 
-void gazset::setStartCs(cs c)
+void gazset::setStartCs(cs c,int id)
 {
-	Cs1 = c;
+	Cs1[id] = c;
 }
 
-void gazset::setEndCs(cs c)
+void gazset::setEndCs(cs c, int id)
 {
-	Cs2 = c;
+	Cs2[id] = c;
 }
 
-pipe gazset::getPipe()
+pipe gazset::getPipe(int id)
 {
-	return Pipe;
+	return Pipe[id];
 }
 
-cs gazset::getStartCs()
+cs gazset::getStartCs(int id)
 {
-	return Cs1;
+	return Cs1[id];
 }
 
-cs gazset::getEndCs()
+cs gazset::getEndCs(int id)
 {
-	return Cs2;
+	return Cs2[id];
 }

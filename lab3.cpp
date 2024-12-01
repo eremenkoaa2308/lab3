@@ -12,6 +12,7 @@
 #include <map>
 #include <concepts>
 #include <set>
+#include <stack>
 using namespace std;
 
 
@@ -52,6 +53,8 @@ int getChoose() {
         cout << "8. Filter\n";
         cout << "9. Delete\n";
         cout << "10. Create gas trasportation system" << endl;
+        cout << "11. Create a new connection in gas transportation system" << endl;
+        cout << "12. Show gas transportation system" << endl;
         cout << "0. Exit\n";
         getline(cin, input);
         logMessage(input);
@@ -330,7 +333,7 @@ void write_file(map<int, pipe> Pipes, map<int, cs> Css) {
     logMessage(f);
     ofstream out;
     if (f.length() < 4 || f.substr(f.length() - 4) != ".txt") {
-        f += ".txt"; // if not ".txt", we add it to the end
+        f += ".txt"; 
     }
     out.open(f);
     if (out.is_open())
@@ -373,7 +376,7 @@ void read_file(map<int, pipe>& Pipes, map<int, cs>& Css, int& i, int& ic) {
     getline(cin, f);
     logMessage(f);
     if (f.length() < 4 || f.substr(f.length() - 4) != ".txt") {
-        f += ".txt"; // if not ".txt", we add it to the end
+        f += ".txt";
     }
     ifstream in(f);
     if (in.is_open()) {
@@ -398,9 +401,9 @@ void read_file(map<int, pipe>& Pipes, map<int, cs>& Css, int& i, int& ic) {
             else if (line == "==CSS==") {
                 CheckPipeOrCs = false;
             }
-            size_t pos = line.find(": ");//we find position of ": " in fileeee
+            size_t pos = line.find(": ");
             if (pos != string::npos) {
-                string value = line.substr(pos + 2);//+2 to skip ": "
+                string value = line.substr(pos + 2);
                 if (CheckPipeOrCs) {
                     if (numOfLine == 2) {
                         idP = stoi(value);
@@ -568,10 +571,10 @@ void filt(map<int, pipe>& Pipes, map<int, cs>& Css) {
             string token;
             while ((pos = input.find(" ")) != string::npos) {
                 token = input.substr(0, pos);
-                numbers.push_back(stoi(token)); //Converting a substring to a number
+                numbers.push_back(stoi(token));
                 input.erase(0, pos + 1);
             }
-            numbers.push_back(stoi(input)); //Adding the last number
+            numbers.push_back(stoi(input));
             for (int i = 0; i < numbers.size(); i++) {
                 if (Pipes.find(numbers[i]) != Pipes.end()) {
                     cout << "Pipe id: " << numbers[i] << endl;
@@ -711,10 +714,10 @@ void filt(map<int, pipe>& Pipes, map<int, cs>& Css) {
             string token;
             while ((pos = input.find(" ")) != string::npos) {
                 token = input.substr(0, pos);
-                numbers.push_back(stoi(token)); //Converting a substring to a number
+                numbers.push_back(stoi(token));
                 input.erase(0, pos + 1);
             }
-            numbers.push_back(stoi(input)); //Adding the last number
+            numbers.push_back(stoi(input));
             for (int i = 0; i <= numbers.size(); i++) {
                 if (Css.find(numbers[i]) != Css.end()) {
                     cout << Css[numbers[i]];
@@ -797,10 +800,10 @@ void delPC(map<int, pipe>& Pipes, map<int, cs>& Css) {
     string token;
     while ((pos = input.find(" ")) != string::npos) {
         token = input.substr(0, pos);
-        numbers.push_back(stoi(token)); //Converting a substring to a number
+        numbers.push_back(stoi(token));
         input.erase(0, pos + 1);
     }
-    numbers.push_back(stoi(input)); //Adding the last number
+    numbers.push_back(stoi(input));
     if (numbers.size() != 0) {
         if (A) {
             if (Pipes.size() != 0) {
@@ -845,7 +848,6 @@ void createGazSet(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& Cs
         }
     }
 
-    // Проверка: если все трубы используются, создаем новую трубу
     if (usedPipes.size() == Pipes.size()) {
         cout << "All pipes are in use. Creating a new pipe..." << endl;
         createPipe(Pipes, i);
@@ -870,10 +872,9 @@ void createGazSet(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& Cs
         }
     }
 
-    usedPipes.insert(id); // Помечаем трубу как использованную
+    usedPipes.insert(id);
     Gaz[ig].setpipe(Pipes[id], ig);
 
-    // Проверка: если все станции используются, создаем новую станцию
     if (usedCs.size() == Css.size()) {
         cout << "All compressor stations are in use. Creating a new compressor station..." << endl;
         createCs(Css, ic);
@@ -898,7 +899,7 @@ void createGazSet(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& Cs
         }
     }
 
-    usedCs.insert(c1id); // Помечаем первую станцию как использованную
+    usedCs.insert(c1id);
     Gaz[ig].setStartCs(Css[c1id], ig);
     if (usedCs.size() == Css.size()) {
         cout << "All compressor stations are in use. Creating a new compressor station..." << endl;
@@ -920,7 +921,7 @@ void createGazSet(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& Cs
         }
     }
 
-    usedCs.insert(c2id); // Помечаем вторую станцию как использованную
+    usedCs.insert(c2id);
     Gaz[ig].setEndCs(Css[c2id], ig);
 
     cout << "Your gas transportation system has been created." << endl;
@@ -928,9 +929,202 @@ void createGazSet(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& Cs
     cout << Gaz[ig].getStartCs(ig) << endl;
     cout << Gaz[ig].getEndCs(ig) << endl;
 
-    ig++; // Увеличиваем счетчик для следующего Gaz
+    ig++;
 }
+void createConnect(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& Css,
+    set<int>& usedPipes, set<int>& usedCs, int& ic, int& i, int& ig) {
+    cout << "Creating a new connection between compressor stations." << endl;
 
+    // Проверка наличия gazset
+    if (Gaz.empty()) {
+        cout << "No gas transportation systems exist yet. Create one first!" << endl;
+        return;
+    }
+
+    // Выбор gazset
+    cout << "Available gas transportation systems:" << endl;
+    for (const auto& g : Gaz) {
+        cout << "Gazset ID: " << g.first << endl;
+    }
+
+    int gazsetId;
+    while (true) {
+        cout << "Enter the ID of an existing gazset:" << endl;
+        string input;
+        getline(cin, input);
+
+        if (isInteger(input)) {
+            gazsetId = stoi(input);
+            if (Gaz.find(gazsetId) != Gaz.end()) {
+                break;
+            }
+        }
+        cout << "Invalid gazset ID. Try again." << endl;
+    }
+
+    gazset& selectedGaz = Gaz[gazsetId];
+
+    // Выбор cs, принадлежащей gazset
+    int startCsId;
+    while (true) {
+        cout << "Enter the ID of a compressor station belonging to this gazset (it can be either cs1 or cs2):" << endl;
+        string input;
+        getline(cin, input);
+
+        if (isInteger(input)) {
+            startCsId = stoi(input);
+
+            // Проверяем принадлежность к Cs1
+            if (usedCs.count(startCsId)) {  // Используем count для проверки наличия
+                cout << "Compressor station belongs to Cs1 of the selected gazset." << endl;
+                break;
+            }
+        }
+
+        cout << "Invalid compressor station ID. Try again." << endl;
+    }
+
+    // Проверка наличия доступных cs
+    vector<int> availableCs;
+    for (const auto& c : Css) {
+        if (usedCs.find(c.first) == usedCs.end() &&
+            !selectedGaz.Cs1.count(c.first) && !selectedGaz.Cs2.count(c.first)) {
+            availableCs.push_back(c.first);
+        }
+    }
+
+    int endCsId;
+    if (availableCs.empty()) {
+        cout << "No available compressor stations found. Creating a new one..." << endl;
+        createCs(Css, ic);
+        endCsId = ic - 1; // ID только что созданной станции
+    }
+    else {
+        cout << "Available compressor stations:" << endl;
+        for (int csId : availableCs) {
+            cout << "Cs ID: " << csId << endl;
+        }
+
+        while (true) {
+            cout << "Enter the ID of a compressor station not belonging to this gazset:" << endl;
+            string input;
+            getline(cin, input);
+
+            if (isInteger(input)) {
+                endCsId = stoi(input);
+                if (find(availableCs.begin(), availableCs.end(), endCsId) != availableCs.end()) {
+                    break;
+                }
+            }
+            cout << "Invalid compressor station ID. Try again." << endl;
+        }
+    }
+
+    // Проверка наличия доступных труб
+    vector<int> availablePipes;
+    for (const auto& p : Pipes) {
+        if (usedPipes.find(p.first) == usedPipes.end()) {
+            availablePipes.push_back(p.first);
+        }
+    }
+
+    int pipeId;
+    if (availablePipes.empty()) {
+        cout << "No available pipes found. Creating a new one..." << endl;
+        createPipe(Pipes, i);
+        pipeId = i - 1; // ID только что созданной трубы
+    }
+    else {
+        cout << "Available pipes:" << endl;
+        for (int pipe : availablePipes) {
+            cout << "Pipe ID: " << pipe << endl;
+        }
+
+        while (true) {
+            cout << "Enter the ID of a pipe not belonging to this gazset:" << endl;
+            string input;
+            getline(cin, input);
+
+            if (isInteger(input)) {
+                pipeId = stoi(input);
+                if (find(availablePipes.begin(), availablePipes.end(), pipeId) != availablePipes.end()) {
+                    break;
+                }
+            }
+            cout << "Invalid or already used pipe ID. Try again." << endl;
+        }
+    }
+
+    // Обновление gazset
+    selectedGaz.createCon(Pipes[pipeId], Css[startCsId], Css[endCsId], ig);
+    usedPipes.insert(pipeId);
+    usedCs.insert(startCsId);
+    usedCs.insert(endCsId);
+
+    cout << "New connection successfully created within gazset ID " << gazsetId << "." << endl;
+}
+void getGaz(map<int, gazset>& Gaz) {
+    if (Gaz.empty()) {
+        cout << "No gas transportation systems exist." << endl;
+        return;
+    }
+
+    cout << "Displaying all connections in gas transportation networks:" << endl;
+
+    for (const auto& g : Gaz) {
+        cout << "Gazset ID: " << g.first << endl;
+
+        // Перебор всех труб в данном gazset
+        for (const auto& p : g.second.Pipe) {
+            cout << "  Pipe ID: " << p.first << " connects:" << endl;
+
+            // Найти компрессорные станции, соединенные данной трубой
+            auto cs1It = g.second.Cs1.find(p.first);
+            auto cs2It = g.second.Cs2.find(p.first);
+
+            if (cs1It != g.second.Cs1.end() && cs2It != g.second.Cs2.end()) {
+                cout << "    CS1 ID: " << cs1It->first << ", Name: " << cs1It->second.GetName() << endl;
+                cout << "    CS2 ID: " << cs2It->first << ", Name: " << cs2It->second.GetName() << endl;
+            }
+            else {
+                cout << "    Connection information is incomplete." << endl;
+            }
+        }
+    }
+}
+void topolsort(map<int, gazset>& Gaz) {
+    cout << "Creating a new connection between compressor stations." << endl;
+
+    // Проверка наличия gazset
+    if (Gaz.empty()) {
+        cout << "No gas transportation systems exist yet. Create one first!" << endl;
+        return;
+    }
+
+    // Выбор gazset
+    cout << "Available gas transportation systems:" << endl;
+    for (const auto& g : Gaz) {
+        cout << "Gazset ID: " << g.first << endl;
+    }
+
+    int gazsetId;
+    while (true) {
+        cout << "Enter the ID of an existing gazset:" << endl;
+        string input;
+        getline(cin, input);
+
+        if (isInteger(input)) {
+            gazsetId = stoi(input);
+            if (Gaz.find(gazsetId) != Gaz.end()) {
+                break;
+            }
+        }
+        cout << "Invalid gazset ID. Try again." << endl;
+    }
+
+    gazset& selectedGaz = Gaz[gazsetId];
+    selectedGaz.topologicalSort();
+}
 int main() {
     int i = 0;
     int ic = 0;
@@ -940,7 +1134,7 @@ int main() {
     map<int, pipe> Pipes;
     map<int, cs> Css;
     map<int, gazset> Gaz;
-    set<int> usedPipes; // Множество используемых труб
+    set<int> usedPipes;
     set<int> usedCs;
     while (true) {
         int choose = getChoose();
@@ -981,6 +1175,18 @@ int main() {
         }
         case 10: {
             createGazSet(Gaz,Pipes, Css,i,ic,ig,usedPipes,usedCs);
+            break;
+        }
+        case 11: {
+            createConnect(Gaz, Pipes, Css, usedPipes, usedCs, ic,i, ig);
+            break;
+        }
+        case 12: {
+            getGaz(Gaz);
+            break;
+        }
+        case 13: {
+            topolsort(Gaz);
             break;
         }
         case 0:

@@ -1,22 +1,24 @@
 #pragma once
 #include "pipe.h"
 #include "cs.h"
-#include <map>
-#include <vector>
 using namespace std;
 class gazset
 {
+private:
+	pipe p;
+	int idp;
+	cs c1;
+	int idc1;
+	cs c2;
+	int idc2;
 public:
-	map<int, pipe> Pipe;
-	map<int, cs> Cs1;
-	map<int, cs> Cs2;
-	void setpipe(pipe p,int id);
-	void setStartCs(cs c,int id);
-	void setEndCs(cs c,int id);
-	pipe getPipe(int id);
-	cs getStartCs(int id);
-	cs getEndCs(int id);
-	void createCon(pipe p, cs c1, cs c2, int i);
-	vector<int> topologicalSort();
+	gazset(pipe pe, int i, cs c11, int i1, cs cs22, int i2);
+	gazset();
+	pipe getPipe() const;
+	int getPipeID() const;
+	cs getCs1() const;
+	cs getCs2() const;
+	int getCs1ID() const;
+	int getCs2ID() const;
 };
 

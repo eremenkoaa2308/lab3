@@ -761,81 +761,8 @@ void filt(map<int, pipe>& Pipes, map<int, cs>& Css) {
 }
 
 
-void delPC(map<int, pipe>& Pipes, map<int, cs>& Css) {
-    string ch;
-    string h;
-    bool A;
-    int number;
-    string input;
-    vector<int> numbers;
-    istringstream iss(input);
-    while (true) {
-        cout << "Enter what objects you want to delete: pipes or css (p/c)" << endl;
-        getline(cin, ch);
-        logMessage(ch);
-        if (ch == "p" || ch == "P") {
-            A = true;
-            break;
-        }
-        else if (ch == "c" || ch == "C") {
-            A = false;
-            break;
-        }
-        else {
-            cout << "Enter letter p or c!" << endl;
-        }
-    }
 
-    if (A) {
 
-        showPipe(Pipes);
-        cout << "Enter id's of pipes you want to delete (separated by a space)" << endl;
-    }
-    else {
-        showCs(Css);
-        cout << "Enter id's of css you want to delete (separated by a space)" << endl;
-    }
-    getline(cin, input);
-    logMessage(input);
-    int pos = 0;
-    string token;
-    while ((pos = input.find(" ")) != string::npos) {
-        token = input.substr(0, pos);
-        numbers.push_back(stoi(token));
-        input.erase(0, pos + 1);
-    }
-    numbers.push_back(stoi(input));
-    if (numbers.size() != 0) {
-        if (A) {
-            if (Pipes.size() != 0) {
-                for (int i = 0; i <= Pipes.size(); i++) {
-                    if (Pipes.find(numbers[i]) != Pipes.end()) {
-                        Pipes.erase(numbers[i]);
-                    }
-                }
-            }
-            else {
-                cout << "You don't have pipes!!!" << endl;
-            }
-        }
-        else {
-            if (Css.size() != 0) {
-                for (int i = 0; i <= Css.size() + 1; i++) {
-                    if ((numbers[i]) <= Css.size()) {
-                        Css.erase(numbers[i]);
-                    }
-                }
-            }
-            else {
-                cout << "You don't have css!!!" << endl;
-            }
-        }
-    }
-    else {
-        cout << "Entered numbers are incorrect! Try again!!!" << endl;
-    }
-
-}
 void createGazSet(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& Css,
     int& i, int& ic, int& ig, set<int>& usedPipes, set<int>& usedCs) {
     cout << "Creating a gas transportation network" << endl;
@@ -1060,7 +987,6 @@ void topolsort(map<int, gazset>& Gaz) {
 
     // Инициализация списка смежности и входящих степеней
     for (const auto& pair : Gaz) {
-        int pipeID = pair.first;
         int cs1ID = pair.second.getCs1ID();
         int cs2ID = pair.second.getCs2ID();
 
@@ -1069,7 +995,7 @@ void topolsort(map<int, gazset>& Gaz) {
         inDegree[cs1ID] += 0; // Убедимся, что все узлы есть в карте
     }
 
-    // Очередь для хранения узлов с входящей степенью 0
+    // Очередь для узлов с входящей степенью 0
     queue<int> zeroInDegree;
     for (const auto& pair : inDegree) {
         if (pair.second == 0) {
@@ -1096,7 +1022,7 @@ void topolsort(map<int, gazset>& Gaz) {
 
     // Проверка на циклы
     if (sortedOrder.size() != inDegree.size()) {
-        cout << "YOUR GRAF CONSISTS OF CICLE!!! SOS!!!" << endl;
+        cout << "YOUR GRAPH CONSISTS OF A CICLE!!! SOS!!! HELP!!!" << endl;
         return;
     }
 
@@ -1106,6 +1032,92 @@ void topolsort(map<int, gazset>& Gaz) {
         cout << node << " ";
     }
     cout << endl;
+}
+void delPC(map<int, pipe>& Pipes, map<int, cs>& Css, map<int, gazset>& Gaz) {
+    string ch;
+    bool isPipe;
+    string input;
+    vector<int> numbers;
+
+    // Определяем, что будем удалять
+    while (true) {
+        cout << "Enter what objects you want to delete: pipes or css (p/c)" << endl;
+        getline(cin, ch);
+        if (ch == "p" || ch == "P") {
+            isPipe = true;
+            break;
+        }
+        else if (ch == "c" || ch == "C") {
+            isPipe = false;
+            break;
+        }
+        else {
+            cout << "Enter letter p or c!" << endl;
+        }
+    }
+
+    // Показываем элементы для удаления
+    if (isPipe) {
+        showPipe(Pipes);
+        cout << "Enter IDs of pipes you want to delete (separated by space):" << endl;
+    }
+    else {
+        showCs(Css);
+        cout << "Enter IDs of compressor stations you want to delete (separated by space):" << endl;
+    }
+
+    // Получаем ID для удаления
+    getline(cin, input);
+    istringstream iss(input);
+    int num;
+    while (iss >> num) {
+        numbers.push_back(num);
+    }
+
+    // Удаляем объекты и связанные gazset
+    for (int id : numbers) {
+        if (isPipe) {
+            if (Pipes.find(id) != Pipes.end()) {
+                // Удаляем связанные gazset
+                auto it = Gaz.begin();
+                while (it != Gaz.end()) {
+                    if (it->second.getPipeID() == id) {
+                        it = Gaz.erase(it);
+                    }
+                    else {
+                        ++it;
+                    }
+                }
+                // Удаляем сам pipe
+                Pipes.erase(id);
+            }
+            else {
+                cout << "Pipe with ID " << id << " does not exist!" << endl;
+            }
+        }
+        else {
+            if (Css.find(id) != Css.end()) {
+                // Удаляем связанные gazset
+                auto it = Gaz.begin();
+                while (it != Gaz.end()) {
+                    if (it->second.getCs1ID() == id || it->second.getCs2ID() == id) {
+                        it = Gaz.erase(it);
+                    }
+                    else {
+                        ++it;
+                    }
+                }
+                // Удаляем сам cs
+                Css.erase(id);
+            }
+            else {
+                cout << "Compressor station with ID " << id << " does not exist!" << endl;
+            }
+        }
+    }
+
+    // Обновляем топологическую сортировку
+    topolsort(Gaz);
 }
 
 int main() {
@@ -1153,7 +1165,7 @@ int main() {
             break;
         }
         case 9: {
-            delPC(Pipes, Css);
+            delPC(Pipes, Css,Gaz);
             break;
         }
         case 10: {

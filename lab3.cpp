@@ -56,6 +56,7 @@ int getChoose() {
         cout << "10. Create gas trasportation system" << endl;
         cout << "11. Create a new connection in gas transportation system" << endl;
         cout << "12. Show gas transportation system" << endl;
+        cout << "13. Topological sort" << endl;
         cout << "0. Exit\n";
         getline(cin, input);
         logMessage(input);
@@ -879,7 +880,8 @@ void createConnect(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& C
         cout << "No gas transportation systems exist yet. Create one first!" << endl;
         return;
     }
-    // Выбор cs, принадлежащей gazset
+
+    // Выбор начальной станции
     int startCsId;
     getGaz(Gaz);
     while (true) {
@@ -891,7 +893,7 @@ void createConnect(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& C
             startCsId = stoi(input);
 
             // Проверяем принадлежность к Cs1
-            if (usedCs.count(startCsId)) {  // Используем count для проверки наличия
+            if (usedCs.count(startCsId)) {
                 cout << "Compressor station belongs to Cs1 of the selected gazset." << endl;
                 break;
             }
@@ -900,40 +902,84 @@ void createConnect(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& C
         cout << "Invalid compressor station ID. Try again." << endl;
     }
 
-    // Проверка наличия доступных cs
-    vector<int> availableCs;
-    for (const auto& c : Css) {
-        if (usedCs.find(c.first) == usedCs.end()) {
-            availableCs.push_back(c.first);
-        }
-    }
-
-
-    int endCsId;
-    if (availableCs.empty()) {
-        cout << "No available compressor stations found. Creating a new one..." << endl;
-        createCs(Css, ic);
-        endCsId = ic - 1; // ID только что созданной станции
-    }
-    else {
-        cout << "Available compressor stations:" << endl;
-        for (int csId : availableCs) {
-            cout << "Cs ID: " << csId << endl;
-        }
-
-        while (true) {
-            cout << "Enter the ID of a compressor station not belonging to this gazset:" << endl;
-            string input;
-            getline(cin, input);
-
-            if (isInteger(input)) {
-                endCsId = stoi(input);
-                if (find(availableCs.begin(), availableCs.end(), endCsId) != availableCs.end()) {
+    // Список подключенных к графу cs, которые не соединены со startCsId
+    vector<int> connectedCs;
+    for (int csId : usedCs) {
+        if (csId != startCsId) {
+            // Проверяем, есть ли уже путь между startCsId и csId
+            bool pathExists = false;
+            for (const auto& gazPair : Gaz) {
+                const gazset& gaz = gazPair.second;
+                if ((gaz.getCs1ID() == startCsId && gaz.getCs2ID() == csId) ||
+                    (gaz.getCs1ID() == csId && gaz.getCs2ID() == startCsId)) {
+                    pathExists = true;
                     break;
                 }
             }
-            cout << "Invalid compressor station ID. Try again." << endl;
+            if (!pathExists) {
+                connectedCs.push_back(csId);
+            }
         }
+    }
+
+    // Список cs, не принадлежащих графу
+    vector<int> unconnectedCs;
+    for (const auto& csPair : Css) {
+        if (usedCs.find(csPair.first) == usedCs.end()) {
+            unconnectedCs.push_back(csPair.first);
+        }
+    }
+
+    int endCsId;
+    // Выбор конечной станции
+    cout << "Available options for the end compressor station:" << endl;
+
+    // Вывод подключенных станций
+    for (size_t index = 0; index < connectedCs.size(); ++index) {
+        cout << index + 1 << ". Connected Cs ID: " << connectedCs[index] << endl;
+    }
+
+    // Вывод неподключенных станций
+    size_t offset = connectedCs.size();
+    for (size_t index = 0; index < unconnectedCs.size(); ++index) {
+        cout << offset + index + 1 << ". Unconnected Cs ID: " << unconnectedCs[index] << endl;
+    }
+
+    // Опция создания новой станции
+    cout << connectedCs.size() + unconnectedCs.size() + 1 << ". Create a new compressor station" << endl;
+
+    // Обработка выбора конечной станции
+    while (true) {
+        cout << "Select a compressor station by entering the corresponding number:" << endl;
+        string input;
+        getline(cin, input);
+
+        if (isInteger(input)) {
+            int choice = stoi(input);
+
+            // Выбор подключенной станции
+            if (choice >= 1 && choice <= static_cast<int>(connectedCs.size())) {
+                endCsId = connectedCs[choice - 1];
+                break;
+            }
+            // Выбор неподключенной станции
+            else if (choice > static_cast<int>(connectedCs.size()) &&
+                choice <= static_cast<int>(connectedCs.size() + unconnectedCs.size())) {
+                endCsId = unconnectedCs[choice - connectedCs.size() - 1];
+                usedCs.insert(endCsId); // Сразу добавляем в граф
+                break;
+            }
+            // Создание новой станции
+            else if (choice == static_cast<int>(connectedCs.size() + unconnectedCs.size() + 1)) {
+                cout << "Creating a new compressor station..." << endl;
+                createCs(Css, ic);
+                endCsId = ic - 1; // ID только что созданной станции
+                usedCs.insert(endCsId); // Сразу добавляем в граф
+                break;
+            }
+        }
+
+        cout << "Invalid choice. Try again." << endl;
     }
 
     // Проверка наличия доступных труб
@@ -957,7 +1003,7 @@ void createConnect(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& C
         }
 
         while (true) {
-            cout << "Enter the ID of a pipe not belonging to this gazset:" << endl;
+            cout << "Enter the ID of a pipe:" << endl;
             string input;
             getline(cin, input);
 
@@ -980,6 +1026,7 @@ void createConnect(map<int, gazset>& Gaz, map<int, pipe>& Pipes, map<int, cs>& C
     ig++;
 }
 
+
 void topolsort(map<int, gazset>& Gaz) {
     // Создание списка смежности
     map<int, vector<int>> adjacencyList;
@@ -995,44 +1042,115 @@ void topolsort(map<int, gazset>& Gaz) {
         inDegree[cs1ID] += 0; // Убедимся, что все узлы есть в карте
     }
 
-    // Очередь для узлов с входящей степенью 0
+    // Запрос начальной и конечной вершины
+    int startCsId, endCsId;
+    cout << "Enter the ID of the starting compressor station:" << endl;
+    cin >> startCsId;
+    cout << "Enter the ID of the ending compressor station:" << endl;
+    cin >> endCsId;
+
+    // Проверка, существуют ли начальная и конечная вершины
+    if (adjacencyList.find(startCsId) == adjacencyList.end() ||
+        inDegree.find(endCsId) == inDegree.end()) {
+        cout << "Invalid start or end compressor station ID." << endl;
+        return;
+    }
+
+    // Найти все узлы, достижимые из startCsId
+    set<int> reachableFromStart;
+    queue<int> toVisit;
+    toVisit.push(startCsId);
+    while (!toVisit.empty()) {
+        int current = toVisit.front();
+        toVisit.pop();
+        reachableFromStart.insert(current);
+
+        for (int neighbor : adjacencyList[current]) {
+            if (reachableFromStart.find(neighbor) == reachableFromStart.end()) {
+                toVisit.push(neighbor);
+            }
+        }
+    }
+
+    // Найти все узлы, от которых можно достичь endCsId
+    set<int> leadsToEnd;
+    map<int, vector<int>> reverseAdjacencyList;
+    for (const auto& pair : adjacencyList) {
+        for (int neighbor : pair.second) {
+            reverseAdjacencyList[neighbor].push_back(pair.first);
+        }
+    }
+
+    toVisit.push(endCsId);
+    while (!toVisit.empty()) {
+        int current = toVisit.front();
+        toVisit.pop();
+        leadsToEnd.insert(current);
+
+        for (int neighbor : reverseAdjacencyList[current]) {
+            if (leadsToEnd.find(neighbor) == leadsToEnd.end()) {
+                toVisit.push(neighbor);
+            }
+        }
+    }
+
+    // Определить узлы, которые находятся на пути от startCsId до endCsId
+    set<int> validNodes;
+    for (int node : reachableFromStart) {
+        if (leadsToEnd.find(node) != leadsToEnd.end()) {
+            validNodes.insert(node);
+        }
+    }
+
+    // Построить новый список смежности только для узлов в validNodes
+    map<int, vector<int>> filteredAdjacencyList;
+    map<int, int> filteredInDegree;
+    for (int node : validNodes) {
+        for (int neighbor : adjacencyList[node]) {
+            if (validNodes.find(neighbor) != validNodes.end()) {
+                filteredAdjacencyList[node].push_back(neighbor);
+                filteredInDegree[neighbor]++;
+            }
+        }
+        filteredInDegree[node] += 0; // Убедимся, что узел есть в карте
+    }
+
+    // Топологическая сортировка
     queue<int> zeroInDegree;
-    for (const auto& pair : inDegree) {
+    for (const auto& pair : filteredInDegree) {
         if (pair.second == 0) {
             zeroInDegree.push(pair.first);
         }
     }
 
     vector<int> sortedOrder;
-
-    // Основной процесс топологической сортировки
     while (!zeroInDegree.empty()) {
         int current = zeroInDegree.front();
         zeroInDegree.pop();
         sortedOrder.push_back(current);
 
-        // Уменьшение входящей степени для соседей
-        for (int neighbor : adjacencyList[current]) {
-            inDegree[neighbor]--;
-            if (inDegree[neighbor] == 0) {
+        for (int neighbor : filteredAdjacencyList[current]) {
+            filteredInDegree[neighbor]--;
+            if (filteredInDegree[neighbor] == 0) {
                 zeroInDegree.push(neighbor);
             }
         }
     }
 
     // Проверка на циклы
-    if (sortedOrder.size() != inDegree.size()) {
-        cout << "YOUR GRAPH CONSISTS OF A CICLE!!! SOS!!! HELP!!!" << endl;
+    if (sortedOrder.size() != filteredInDegree.size()) {
+        cout << "YOUR GRAPH CONSISTS OF A CYCLE BETWEEN SELECTED STATIONS!!! SOS!!! HELP!!!" << endl;
         return;
     }
 
     // Вывод отсортированного порядка
-    cout << "Topological sort: " << endl;
+    cout << "Topological sort from Cs ID " << startCsId << " to Cs ID " << endCsId << ": " << endl;
     for (int node : sortedOrder) {
         cout << node << " ";
     }
     cout << endl;
 }
+
 void delPC(map<int, pipe>& Pipes, map<int, cs>& Css, map<int, gazset>& Gaz) {
     string ch;
     bool isPipe;
